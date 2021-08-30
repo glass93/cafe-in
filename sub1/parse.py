@@ -2,6 +2,7 @@ import json
 import pandas as pd
 import os
 import shutil
+import datetime
 
 DATA_DIR = "../data"
 DATA_FILE = os.path.join(DATA_DIR, "data.json")
@@ -28,6 +29,19 @@ review_columns = (
     "reg_time",  # 리뷰 등록 시간
 )
 
+menu_columns = {
+    "id",  # 메뉴 고유번호
+    "store",  # 음식점 고유번호
+    "menu_name",  # 메뉴명
+    "price",  # 가격
+}
+
+user_columns = {
+    "id",  # 유저 고유번호
+    "gender",  # 성별
+    "age",  # 나이
+}
+
 
 def import_data(data_path=DATA_FILE):
     """
@@ -43,6 +57,8 @@ def import_data(data_path=DATA_FILE):
 
     stores = []  # 음식점 테이블
     reviews = []  # 리뷰 테이블
+    menus = []  # 메뉴 테이블
+    users = []  # 유저 테이블
 
     for d in data:
 
@@ -64,15 +80,29 @@ def import_data(data_path=DATA_FILE):
         for review in d["review_list"]:
             r = review["review_info"]
             u = review["writer_info"]
+            date = datetime.datetime.now()
 
             reviews.append(
                 [r["id"], d["id"], u["id"], r["score"], r["content"], r["reg_time"]]
             )
 
+            users.append(
+                [u["id"], u["gender"], date.year - int(u["born_year"])]
+            )
+
+        menu_id = 0
+        for menu in d["menu_list"]:
+            menu_id += 1
+            menus.append(
+                [menu_id, d["id"], menu["menu"], menu["price"]]
+            )
+
     store_frame = pd.DataFrame(data=stores, columns=store_columns)
     review_frame = pd.DataFrame(data=reviews, columns=review_columns)
+    menu_frame = pd.DataFrame(data=menus, columns=menu_columns)
+    user_frame = pd.DataFrame(data=users, columns=user_columns)
 
-    return {"stores": store_frame, "reviews": review_frame}
+    return {"stores": store_frame, "reviews": review_frame, "menus": menu_frame, "users": user_frame}
 
 
 def dump_dataframes(dataframes):
@@ -106,6 +136,16 @@ def main():
     print("[리뷰]")
     print(f"{separater}\n")
     print(data["reviews"].head())
+    print(f"\n{separater}\n\n")
+
+    print("[메뉴]")
+    print(f"{separater}\n")
+    print(data["menus"].head())
+    print(f"\n{separater}\n\n")
+
+    print("[유저]")
+    print(f"{separater}\n")
+    print(data["users"].head())
     print(f"\n{separater}\n\n")
 
 
