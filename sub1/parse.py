@@ -18,6 +18,7 @@ store_columns = (
     "latitude",  # 음식점 위도
     "longitude",  # 음식점 경도
     "category",  # 음식점 카테고리
+    "review_cnt",  # 음식점 리뷰 수
 )
 
 review_columns = (
@@ -74,6 +75,7 @@ def import_data(data_path=DATA_FILE):
                 d["latitude"],
                 d["longitude"],
                 "|".join(categories),
+                d["review_cnt"],
             ]
         )
 
