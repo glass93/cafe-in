@@ -21,11 +21,8 @@ def get_most_reviewed_stores(dataframes, n=20):
     """
     Req. 1-2-3 가장 많은 리뷰를 받은 `n`개의 음식점을 정렬하여 리턴합니다
     """
-    stores_reviews = pd.merge(
-        dataframes["stores"], dataframes["reviews"], left_on="id", right_on="store"
-    )
-    scores_group = stores_reviews.groupby(["store", "store_name"])
-    scores = scores_group.mean().sort_values(by=["review_cnt"], ascending=False)
+    stores_reviews = dataframes["stores"]
+    scores = stores_reviews.sort_values(by=["review_cnt"], ascending=False)
 
     return scores.head(n=n).reset_index()
 
@@ -34,7 +31,13 @@ def get_most_active_users(dataframes, n=20):
     """
     Req. 1-2-4 가장 많은 리뷰를 작성한 `n`명의 유저를 정렬하여 리턴합니다.
     """
-    raise NotImplementedError
+    users_reviews = pd.merge(
+        dataframes["users"], dataframes["reviews"], left_on="id", right_on="user"
+    )
+    users_group = users_reviews.groupby(["user"]).size().reset_index().rename(columns={0:'cnt'})
+    users = users_group.sort_values(by=["cnt"], ascending=False)
+
+    return users.head(n=n).reset_index()
 
 
 def main():
@@ -45,6 +48,7 @@ def main():
 
     stores_most_scored = sort_stores_by_score(data)
     most_reviewed_stores = get_most_reviewed_stores(data)
+    most_active_users = get_most_active_users(data)
 
     print("[최고 평점 음식점]")
     print(f"{separater}\n")
@@ -62,6 +66,16 @@ def main():
         print(
             "{rank}위: {store}({review_cnt}개)".format(
                 rank=i + 1, store=store.store_name, review_cnt=store.review_cnt
+            )
+        )
+    print(f"\n{separater}\n\n")
+
+    print("[가장 많은 리뷰쓴 유저]")
+    print(f"{separater}\n")
+    for i, user in most_active_users.iterrows():
+        print(
+            "{rank}위: {id}({count}개)".format(
+                rank=i + 1, id=user.user, count=user.cnt
             )
         )
     print(f"\n{separater}\n\n")

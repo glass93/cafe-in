@@ -30,18 +30,18 @@ review_columns = (
     "reg_time",  # 리뷰 등록 시간
 )
 
-menu_columns = {
+menu_columns = (
     "id",  # 메뉴 고유번호
     "store",  # 음식점 고유번호
     "menu_name",  # 메뉴명
     "price",  # 가격
-}
+)
 
-user_columns = {
+user_columns = (
     "id",  # 유저 고유번호
     "gender",  # 성별
     "age",  # 나이
-}
+)
 
 
 def import_data(data_path=DATA_FILE):
