@@ -119,7 +119,49 @@ def show_user_review_distribution_graph(dataframes):
     """
     Req. 1-3-3 전체 유저의 리뷰 개수 분포를 그래프로 나타냅니다.
     """
-    raise NotImplementedError
+
+    def get_ranges(intervals):
+        result = list(map(lambda interval: get_range(interval), intervals))
+        return result
+
+    def get_range(interval):
+        left = interval.left + 1
+        right = interval.right
+        return f'{left} ~ {right}'
+
+    reviews = dataframes["reviews"]
+    user_review_count = reviews.groupby("user")['id'].agg([('review_cnt', 'count')])
+    max_review_count = user_review_count['review_cnt'].max()
+
+    grouped = \
+    user_review_count.groupby(pd.cut(user_review_count['review_cnt'], np.arange(-1, max_review_count + 40, 40)))[
+        'review_cnt'].agg([('count', 'count')])
+    grouped['range'] = get_ranges(grouped.index)
+
+    fig, ax = plt.subplots()
+
+    bar_height = list(grouped['count'])
+    bar_tick_label = list(grouped['range'])
+    bar_label = list(grouped['count'])
+    bar_x = [i + 1 for i in range(len(bar_height))]
+
+    bar_plot = plt.bar(bar_x, bar_height, tick_label=bar_tick_label)
+
+    def autolabel(rects):
+        for idx, rect in enumerate(bar_plot):
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
+                    bar_label[idx],
+                    ha='center', va='bottom', rotation=0)
+
+    autolabel(bar_plot)
+
+    plt.title('전체 유저의 리뷰 개수 분포')
+    plt.xlabel("리뷰 수")
+    plt.ylabel("유저 수")
+    plt.xticks(fontsize=8)
+
+    plt.show()
 
 
 def show_user_age_gender_distribution_graph(dataframes):
@@ -141,8 +183,8 @@ def main():
     data = load_dataframes()
     # show_store_categories_graph(data)
     # show_store_review_distribution_graph(data)
-    show_store_average_ratings_graph(data)
-
+    # show_store_average_ratings_graph(data)
+    show_user_review_distribution_graph(data)
 
 if __name__ == "__main__":
     main()
