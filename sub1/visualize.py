@@ -1,13 +1,14 @@
 import itertools
 from collections import Counter
+from numpy.core.fromnumeric import sort
 from parse import load_dataframes
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import numpy as np
-
-from sub1.analyze import sort_stores_by_score
+import folium
+from analyze import get_most_reviewed_stores, sort_stores_by_score, get_most_active_users
 
 
 def set_config():
@@ -215,7 +216,22 @@ def show_stores_distribution_graph(dataframes):
     """
     Req. 1-3-5 각 음식점의 위치 분포를 지도에 나타냅니다.
     """
-    raise NotImplementedError
+    stores = dataframes["stores"]
+    stores = stores.astype({'latitude': 'float', 'longitude': 'float'})
+    stores = stores[['store_name', 'address', 'latitude', 'longitude']].dropna()
+    stores = stores.query("address.str.contains('제주특별자치도')", engine='python').reset_index()
+
+    center = [33.376349, 126.548024]
+    m = folium.Map(location=center, zoom_start=11)
+    for i in stores.sample(n=1000, replace=False).index:
+        folium.Circle(
+            location=tuple(stores.loc[i, ['latitude', 'longitude']]),
+            tooltip=stores.loc[i, 'store_name'],
+            radius=30
+        ).add_to(m)
+
+    m.save("index.html")
+    print()
 
 
 def main():
@@ -225,7 +241,8 @@ def main():
     # show_store_review_distribution_graph(data)
     # show_store_average_ratings_graph(data)
     # show_user_review_distribution_graph(data)
-    show_user_age_gender_distribution_graph(data)
+    # show_user_age_gender_distribution_graph(data)
+    show_stores_distribution_graph(data)
 
 if __name__ == "__main__":
     main()
