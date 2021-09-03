@@ -1,6 +1,7 @@
 from parse import load_dataframes
 import pandas as pd
 import shutil
+import numpy as np
 
 
 def sort_stores_by_score(dataframes, n=20, min_reviews=30):
@@ -40,6 +41,28 @@ def get_most_active_users(dataframes, n=20):
     return users.head(n=n).reset_index()
 
 
+def get_user_store(dataframes):
+    """
+    Req. 1-4-1 유저 - 음식점 행렬을 생성합니다.
+    """
+    stores_reviews = pd.merge(
+        dataframes["stores"], dataframes["reviews"], left_on="id", right_on="store"
+    )
+
+    user_list = list(set(stores_reviews['user'].values.tolist()))
+    user_list.sort()
+    store_list = list(set(stores_reviews['store_name'].values.tolist()))
+
+    df = pd.DataFrame(data=np.nan, index=user_list, columns=store_list)
+
+    user_group = stores_reviews.sort_values(by='user').groupby(['user', 'store_name']).mean().loc[:, 'score']
+
+    for index, score in user_group.items():
+        user, store_name = index
+        df.loc[user, store_name] = score
+
+    print(df)
+
 def main():
     data = load_dataframes()
 
@@ -78,6 +101,11 @@ def main():
                 rank=i + 1, id=user.user, count=user.cnt
             )
         )
+    print(f"\n{separater}\n\n")
+
+    print("[유저-음식점 행렬]")
+    print(f"{separater}\n")
+    get_user_store(data)
     print(f"\n{separater}\n\n")
 
 
