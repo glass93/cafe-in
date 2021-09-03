@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import numpy as np
 
+from sub1.analyze import sort_stores_by_score
+
 
 def set_config():
     # 폰트, 그래프 색상 설정
@@ -100,11 +102,17 @@ def show_store_review_distribution_graph(dataframes):
     plt.show()
 
 
-def show_store_average_ratings_graph():
+def show_store_average_ratings_graph(dataframes, n=100, min_reviews=30):
     """
     Req. 1-3-2 각 음식점의 평균 평점을 그래프로 나타냅니다.
     """
-    raise NotImplementedError
+    df = sort_stores_by_score(dataframes, n, min_reviews)
+
+    # 그래프로 나타냅니다
+    chart = sns.barplot(x="store_name", y="score", data=df)
+    chart.set_xticklabels(chart.get_xticklabels(), rotation=45)
+    plt.title("음식점의 평균 평점")
+    plt.show()
 
 
 def show_user_review_distribution_graph(dataframes):
@@ -132,7 +140,8 @@ def main():
     set_config()
     data = load_dataframes()
     # show_store_categories_graph(data)
-    show_store_review_distribution_graph(data)
+    # show_store_review_distribution_graph(data)
+    show_store_average_ratings_graph(data)
 
 
 if __name__ == "__main__":
