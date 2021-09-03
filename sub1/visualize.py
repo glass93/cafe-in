@@ -5,6 +5,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+import numpy as np
 
 
 def set_config():
@@ -50,11 +51,53 @@ def show_store_categories_graph(dataframes, n=100):
     plt.show()
 
 
-def show_store_review_distribution_graph():
+def show_store_review_distribution_graph(dataframes):
     """
     Req. 1-3-1 전체 음식점의 리뷰 개수 분포를 그래프로 나타냅니다. 
     """
-    raise NotImplementedError
+
+    def get_ranges(intervals):
+        result = list(map(lambda interval: get_range(interval), intervals))
+        return result
+
+    def get_range(interval):
+        left = interval.left + 1
+        right = interval.right
+        return f'{left} ~ {right}'
+
+    stores_reviews = pd.merge(
+        dataframes["stores"], dataframes["reviews"], left_on="id", right_on="store"
+    )
+    scores_group = stores_reviews.groupby(["store", "store_name"])['id_x'].agg([('review_cnt', 'count')])
+    max_review_count = scores_group['review_cnt'].max()
+    grouped = scores_group.groupby(pd.cut(scores_group['review_cnt'], np.arange(-1, max_review_count + 10, 10)))[
+        'review_cnt'].agg([('count', 'count')])
+    grouped['range'] = get_ranges(grouped.index)
+
+    fig, ax = plt.subplots()
+
+    bar_height = list(grouped['count'])
+    bar_tick_label = list(grouped['range'])
+    bar_label = list(grouped['count'])
+    bar_x = [i + 1 for i in range(len(bar_height))]
+
+    bar_plot = plt.bar(bar_x, bar_height, tick_label=bar_tick_label)
+
+    def autolabel(rects):
+        for idx, rect in enumerate(bar_plot):
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height,
+                    bar_label[idx],
+                    ha='center', va='bottom', rotation=0)
+
+    autolabel(bar_plot)
+
+    plt.title('전체 음식점의 리뷰 개수 분포')
+    plt.xlabel("리뷰 수")
+    plt.ylabel("음식점 수")
+    plt.xticks(fontsize=8)
+
+    plt.show()
 
 
 def show_store_average_ratings_graph():
@@ -88,7 +131,8 @@ def show_stores_distribution_graph(dataframes):
 def main():
     set_config()
     data = load_dataframes()
-    show_store_categories_graph(data)
+    # show_store_categories_graph(data)
+    show_store_review_distribution_graph(data)
 
 
 if __name__ == "__main__":
