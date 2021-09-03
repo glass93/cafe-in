@@ -2,7 +2,7 @@ from parse import load_dataframes
 import pandas as pd
 import shutil
 import numpy as np
-
+import itertools
 
 def sort_stores_by_score(dataframes, n=20, min_reviews=30):
     """
@@ -63,6 +63,29 @@ def get_user_store(dataframes):
 
     print(df)
 
+
+def get_user_category(dataframes):
+    """
+    Req. 1-4-2 유저 - 카테고리 행렬을 생성합니다.
+    """
+    stores_reviews = pd.merge(
+        dataframes["stores"], dataframes["reviews"], left_on="id", right_on="store"
+    )
+
+    user_list = list(set(stores_reviews['user'].values.tolist()))
+    user_list.sort()
+    category_list = list(set(stores_reviews['category'].values.tolist()))
+
+    df = pd.DataFrame(data=np.nan, index=user_list, columns=category_list)
+
+    user_group = stores_reviews.sort_values(by='user').groupby(['user', 'category']).mean().loc[:, 'score']
+
+    for index, score in user_group.items():
+        user, category = index
+        df.loc[user, category] = score
+
+    print(df)
+
 def main():
     data = load_dataframes()
 
@@ -106,6 +129,11 @@ def main():
     print("[유저-음식점 행렬]")
     print(f"{separater}\n")
     get_user_store(data)
+    print(f"\n{separater}\n\n")
+
+    print("[유저-카테고리 행렬]")
+    print(f"{separater}\n")
+    get_user_category(data)
     print(f"\n{separater}\n\n")
 
 
